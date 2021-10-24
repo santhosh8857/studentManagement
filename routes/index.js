@@ -23,6 +23,28 @@ router.get("/all-students", async (req, res) => {
   }
 });
 
+// get specific studnet
+router.get("/get-student/:id", async (req, res) => {
+  const client = await MongoClient.connect(dbUrl);
+
+  try {
+    const db = client.db("studentManagement");
+    let data = await db
+      .collection("students")
+      .findOne({ _id: ObjectId(req.params.id) });
+
+    res.send({
+      message: "Success",
+      data: data,
+    });
+  } catch (e) {
+    console.log(e);
+    res.send({ message: "Error in connection" });
+  } finally {
+    client.close();
+  }
+});
+
 // add students
 router.post("/add-many-students", async (req, res) => {
   const client = await MongoClient.connect(dbUrl);
