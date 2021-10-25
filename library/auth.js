@@ -1,4 +1,7 @@
-const bcrypt = require("bcryptjs"); // responsible for encrypting the password
+const bcrypt = require("bcryptjs"); // for encrypting the password
+const JWT = require("jsonwebtoken"); // for initializing token
+const secret = "ahsifsahiahrfvbfkjagfilrb5tikljref";
+const JWTD = require("jwt-decode"); // for decode the token
 
 // hashing
 const hashing = async (value) => {
@@ -25,4 +28,23 @@ const hashCompare = async (currentValue, hashPassword) => {
   }
 };
 
-module.exports = { hashing, hashCompare };
+// create token
+const createToken = async (username, email) => {
+  try {
+    // sign func ("data", secret code, expiration time)
+    return JWT.sign(
+      {
+        username,
+        email,
+      },
+      secret,
+      {
+        expiresIn: "5m",
+      }
+    );
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+module.exports = { hashing, hashCompare, createToken };

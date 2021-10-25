@@ -2,7 +2,7 @@ var express = require("express");
 var router = express.Router();
 var { ObjectId } = require("mongodb"); // to use ObjectId
 const { mongodb, MongoClient, dbUrl } = require("../dbConfig");
-const { hashing, hashCompare } = require("../library/auth"); // imported to make the password encrypted
+const { hashing, hashCompare, createToken } = require("../library/auth"); // imported to make the password encrypted
 
 /* GET users listing. */
 router.get("/", async (req, res) => {
@@ -68,6 +68,35 @@ router.post("/login", async (req, res) => {
       }
     } else {
       res.send({ message: "No user available" });
+    }
+  } catch (e) {
+    console.log(e);
+    res.send({ message: "Error in connection" });
+  } finally {
+    client.close();
+  }
+});
+
+// forget password
+router.post("/forget-password", async (req, res) => {
+  const client = await MongoClient.connect(dbUrl);
+  let email = req.body.email; // email from client
+  try {
+    const db = await client.db("studentManagement");
+    const user = await db.collection("users").findOne({ email: email });
+
+    if (user) {
+      // verifying user
+      let token = await createToken(user.name, user.email); // calling createToken() to get token
+
+      // enhancement -> send email with token to the user
+      res.send({
+        // sending token to the user
+        token,
+        message: "Reset link has been sent successfully!",
+      });
+    } else {
+      res.send("Invalid email!");
     }
   } catch (e) {
     console.log(e);
