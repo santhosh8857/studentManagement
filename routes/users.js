@@ -2,7 +2,12 @@ var express = require("express");
 var router = express.Router();
 var { ObjectId } = require("mongodb"); // to use ObjectId
 const { mongodb, MongoClient, dbUrl } = require("../dbConfig");
-const { hashing, hashCompare, createToken } = require("../library/auth"); // imported to make the password encrypted
+const {
+  hashing,
+  hashCompare,
+  createToken,
+  authenticate,
+} = require("../library/auth"); // imported to make the password encrypted
 
 /* GET users listing. */
 router.get("/", async (req, res) => {
@@ -96,7 +101,35 @@ router.post("/forget-password", async (req, res) => {
         message: "Reset link has been sent successfully!",
       });
     } else {
-      res.send("Invalid email!");
+      res.send({ message: "Invalid email!" });
+    }
+  } catch (e) {
+    console.log(e);
+    res.send({ message: "Error in connection" });
+  } finally {
+    client.close();
+  }
+});
+
+// reset password
+// passing the token to the URL
+router.post("/reset-password/:token", async (req, res) => {
+  const client = await MongoClient.connect(dbUrl);
+  let tokenVerifiedEmail = await authenticate(req.params.token); // calling the authenticate function to check the valid token
+  try {
+    // checking the email
+    if (tokenVerifiedEmail) {
+      const db = client.db("studentManagement");
+      const hash = await hashing(req.body.password); //password encryption
+
+      // updating new password to the db
+      const data = await db
+        .collection("users")
+        .updateOne({ email: tokenVerifiedEmail }, { $set: { password: hash } });
+
+      res.send({ message: "password has been reset successfully", data: data });
+    } else {
+      res.send({ message: "Link expired!" });
     }
   } catch (e) {
     console.log(e);

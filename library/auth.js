@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs"); // for encrypting the password
 const JWT = require("jsonwebtoken"); // for initializing token
+const { default: jwtDecode } = require("jwt-decode");
 const secret = "ahsifsahiahrfvbfkjagfilrb5tikljref";
 const JWTD = require("jwt-decode"); // for decode the token
 
@@ -47,4 +48,17 @@ const createToken = async (username, email) => {
   }
 };
 
-module.exports = { hashing, hashCompare, createToken };
+// authenticate
+const authenticate = async (token) => {
+  const decode = JWTD(token); // calling JWTD to decode
+  // console.log(decode);
+  // console.log(Math.round(new Date()));
+  if (Math.round(new Date() / 1000) <= decode.exp) {
+    // checking the exp time
+    return decode.email;
+  } else {
+    return false;
+  }
+};
+
+module.exports = { hashing, hashCompare, createToken, authenticate };
