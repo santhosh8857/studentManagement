@@ -1,25 +1,26 @@
-var express = require("express");
+var express = require("express"); // responsible for express package
 var router = express.Router();
-var { ObjectId } = require("mongodb");
-const { mongodb, MongoClient, dbUrl } = require("../library/dbConfig");
+var { ObjectId } = require("mongodb"); // to use ObjectId
+const { mongodb, MongoClient, dbUrl } = require("../dbConfig"); // importing
 
 /* GET home page. */
 router.get("/all-students", async (req, res) => {
-  const client = await MongoClient.connect(dbUrl);
+  const client = await MongoClient.connect(dbUrl); // connecting to mongodb
 
   try {
-    const db = client.db("studentManagement");
-    const data = await db.collection("students").find().toArray();
+    const db = client.db("studentManagement"); // connecting to db
+    const data = await db.collection("students").find().toArray(); // operation in db collection
 
+    // sending response from server
     res.send({
       message: "Success",
       data: data,
     });
   } catch (e) {
     console.log(e);
-    res.send({ message: "Error in connection" });
+    res.send({ message: "Error in connection" }); // response from server incase of error
   } finally {
-    client.close();
+    client.close(); // close the connection
   }
 });
 
@@ -31,7 +32,7 @@ router.get("/get-student/:id", async (req, res) => {
     const db = client.db("studentManagement");
     let data = await db
       .collection("students")
-      .findOne({ _id: ObjectId(req.params.id) });
+      .findOne({ _id: ObjectId(req.params.id) }); // params.id to get the id from req url
 
     res.send({
       message: "Success",
@@ -86,6 +87,7 @@ router.put("/edit-student/:id", async (req, res) => {
   try {
     const db = client.db("studentManagement");
     const data = await db.collection("students").updateOne(
+      // updateOne(filter(data), operation ($set))
       { _id: ObjectId(req.params.id) },
       {
         $set: {
